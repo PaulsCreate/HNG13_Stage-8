@@ -31,7 +31,7 @@ A NestJS backend application implementing Google Sign-In and Paystack payment fu
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/PaulsCreate/HNG13_Stage-7.git
+git clone https://github.com/PaulsCreate/HNG13_Stage-8.git
 cd HNG13_Stage-7
 ```
 
@@ -292,7 +292,7 @@ tachments/assets/15d0a9aa-dff0-4fa1-aea0-f20d076a1664" />
 
 ## Author
 
-**Paul Yusuf** - HNG Stage 7 Backend Task
+**Paul Yusuf** - HNG Stage 8 Backend Task
 
 ## License
 
