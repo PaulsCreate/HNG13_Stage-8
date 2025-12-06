@@ -1,4 +1,4 @@
-# HNG Stage 7 - Google OAuth & Paystack Payment Integration
+# HNG Stage 8 - Google OAuth & Paystack Payment Integration
 
 A NestJS backend application implementing Google Sign-In and Paystack payment functionalities.
 
