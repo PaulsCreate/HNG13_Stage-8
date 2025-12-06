@@ -282,6 +282,14 @@ src/
 └── main.ts
 ```
 
+<img width="1326" height="512" alt="Screenshot 2025-12-06 143404" src="https://github.com/user-attachments/assets/04bdad0b-6d85-4a76-abae-c59cfba2e0dc" />
+
+<img width="1242" height="512" alt="Screenshot 2025-12-06 143418" src="https://github.com/user-at<img width="1353" height="641" alt="Screenshot 2025-12-06 143320" src="https://github.com/user-attachments/assets/1dc47deb-0b59-409c-a6a8-fa5acf6444d5" />
+<img width="1094" height="536" alt="Screenshot 2025-12-06 143925" src="https://github.com/user-attachments/assets/ca0ded8f-da83-49a5-82bf-11aecba9bfc9" />
+<img width="1351" height="613" alt="Screenshot 2025-12-06 143336" src="https://github.com/user-attachments/assets/2bbf63e1-cfd2-4146-b7f4-d1587ab99260" />
+tachments/assets/15d0a9aa-dff0-4fa1-aea0-f20d076a1664" />
+
+
 ## Author
 
 **Paul Yusuf** - HNG Stage 7 Backend Task
