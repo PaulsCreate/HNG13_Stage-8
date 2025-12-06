@@ -1,212 +1,291 @@
-## HNG Stage 7 - Google OAuth & Paystack Payment Integration
+# HNG Stage 7 - Google OAuth & Paystack Payment Integration
 
 A NestJS backend application implementing Google Sign-In and Paystack payment functionalities.
 
 ## Features
 
-✅ Google OAuth 2.0 authentication
-✅ Paystack payment initialization
-✅ Webhook handling for payment status updates
-✅ Transaction status verification
-✅ PostgreSQL database with TypeORM
-✅ Idempotency for duplicate transactions
-Tech Stack
-Framework: NestJS
-Database: PostgreSQL
-ORM: TypeORM
-Authentication: Google OAuth 2.0
-Payment: Paystack
-Language: TypeScript
-Prerequisites
-Node.js (v16 or higher)
-PostgreSQL
-Google OAuth credentials
-Paystack account
-Installation
-Clone the repository
-bash
-git clone <your-repo-url>
-cd hng-stage7-auth-payment
-Install dependencies
-bash
-npm install
-Create .env file
-env
+- ✅ Google OAuth 2.0 authentication
+- ✅ Paystack payment initialization
+- ✅ Webhook handling for payment status updates
+- ✅ Transaction status verification
+- ✅ PostgreSQL database with TypeORM
+- ✅ Idempotency for duplicate transactions
+
+## Tech Stack
+
+- **Framework:** NestJS
+- **Database:** PostgreSQL
+- **ORM:** TypeORM
+- **Authentication:** Google OAuth 2.0
+- **Payment:** Paystack
+- **Language:** TypeScript
+
+## Prerequisites
+
+- Node.js (v16 or higher)
+- PostgreSQL
+- Google OAuth credentials
+- Paystack account
+
+## Installation
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/PaulsCreate/HNG13_Stage-7.git
+cd HNG13_Stage-7
+```
+
+### 2. Install dependencies
+```bash
+pnpm install
+```
+
+### 3. Create `.env` file
+```env
+# Database
 DATABASE_HOST=localhost
 DATABASE_PORT=5432
 DATABASE_USER=postgres
 DATABASE_PASSWORD=your_password
 DATABASE_NAME=hng_stage7
 
+# Google OAuth
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:4000/auth/google/callback
 
+# Paystack
 PAYSTACK_SECRET_KEY=your_paystack_secret_key
 PAYSTACK_WEBHOOK_SECRET=your_webhook_secret
 
-PORT=3000
+# App
+PORT=4000
 NODE_ENV=development
-Create PostgreSQL database
-bash
+```
+
+### 4. Create PostgreSQL database
+```bash
 createdb hng_stage7
-Run the application
-bash
-npm run start:dev
-API Endpoints
-Authentication
+```
 
-1. Trigger Google Sign-In
-   GET /auth/google
-   Redirects to Google OAuth consent page.
+### 5. Run the application
+```bash
+pnpm run start:dev
+```
 
-2. Google OAuth Callback
-   GET /auth/google/callback?code=<authorization_code>
-   Handles the OAuth callback and creates/updates user.
+The application will start on `http://localhost:4000`
 
-Response:
+## API Endpoints
 
-json
+### Authentication
+
+#### 1. Trigger Google Sign-In
+```
+GET /auth/google
+```
+Redirects to Google OAuth consent page.
+
+#### 2. Google OAuth Callback
+```
+GET /auth/google/callback?code=<authorization_code>
+```
+Handles the OAuth callback and creates/updates user.
+
+**Response:**
+```json
 {
-"user_id": "uuid",
-"email": "user@example.com",
-"name": "John Doe",
-"picture": "https://..."
+  "user_id": "uuid",
+  "email": "user@example.com",
+  "name": "John Doe",
+  "picture": "https://..."
 }
-Payments 3. Initiate Payment
+```
+
+### Payments
+
+#### 3. Initiate Payment
+```
 POST /payments/paystack/initiate
-Request Body:
+```
 
-json
+**Request Body:**
+```json
 {
-"amount": 5000,
-"email": "customer@example.com"
+  "amount": 5000,
+  "email": "customer@example.com"
 }
-Response:
+```
 
-json
+**Response:**
+```json
 {
-"reference": "txn_1234567890_abc",
-"authorization_url": "https://checkout.paystack.com/..."
-} 4. Webhook Endpoint
+  "reference": "txn_1234567890_abc",
+  "authorization_url": "https://checkout.paystack.com/..."
+}
+```
+
+#### 4. Webhook Endpoint
+```
 POST /payments/paystack/webhook
+```
 Receives payment status updates from Paystack. Validates signature automatically.
 
-5. Check Transaction Status
-   GET /payments/:reference/status?refresh=true
-   Response:
+#### 5. Check Transaction Status
+```
+GET /payments/:reference/status?refresh=true
+```
 
-json
+**Response:**
+```json
 {
-"reference": "txn_1234567890_abc",
-"status": "success",
-"amount": 5000,
-"paid_at": "2024-12-06T10:30:00.000Z"
+  "reference": "txn_1234567890_abc",
+  "status": "success",
+  "amount": 5000,
+  "paid_at": "2024-12-06T10:30:00.000Z"
 }
+```
 
 ## Webhook Testing
 
 The webhook endpoint is implemented and validates Paystack signatures.
 
-For local testing, the `/payments/:reference/status?refresh=true` endpoint
-can be used to verify transactions directly with Paystack's API.
+For local testing, the `/payments/:reference/status?refresh=true` endpoint can be used to verify transactions directly with Paystack's API.
 
-For production webhook testing with Paystack callbacks, expose the webhook
-endpoint using a tool like ngrok.
+For production webhook testing with Paystack callbacks, expose the webhook endpoint using a tool like ngrok:
+
+```bash
+ngrok http 4000
+```
+
+Then update your Paystack webhook URL to: `https://your-ngrok-url.ngrok.io/payments/paystack/webhook`
 
 ## Database Schema
 
-Users Table
-id (UUID, Primary Key)
-email (Unique)
-name
-picture
-googleId (Unique)
-createdAt
-updatedAt
-Transactions Table
-id (UUID, Primary Key)
-reference (Unique)
-amount (BigInt)
-status (Enum: pending, success, failed)
-authorizationUrl
-paidAt
-userId (Foreign Key)
-createdAt
-updatedAt
-Security Features
-Environment variables for sensitive data
-Webhook signature verification
-Idempotency for duplicate transactions
-Input validation using class-validator
-Testing
-Manual Testing with Postman
-Google OAuth:
-Open browser: http://localhost:3000/auth/google
-Complete Google login
-Verify user creation in database
-Paystack Payment:
-Use Postman to POST to /payments/paystack/initiate
-Copy the authorization_url and open in browser
-Use Paystack test card: 4084084084084081
-Check transaction status
-Paystack Test Cards
-Success: 4084084084084081
-Decline: 4084080000000408
-Error Handling
+### Users Table
+- `id` (UUID, Primary Key)
+- `email` (Unique)
+- `name`
+- `picture`
+- `googleId` (Unique)
+- `createdAt`
+- `updatedAt`
+
+### Transactions Table
+- `id` (UUID, Primary Key)
+- `reference` (Unique)
+- `amount` (BigInt)
+- `status` (Enum: pending, success, failed)
+- `authorizationUrl`
+- `paidAt`
+- `userId` (Foreign Key)
+- `createdAt`
+- `updatedAt`
+
+## Security Features
+
+- Environment variables for sensitive data
+- Webhook signature verification
+- Idempotency for duplicate transactions
+- Input validation using class-validator
+
+## Testing
+
+### Manual Testing with Postman
+
+**1. Google OAuth:**
+- Open browser: `http://localhost:4000/auth/google`
+- Complete Google login
+- Verify user creation in database
+
+**2. Paystack Payment:**
+- Use Postman to POST to `/payments/paystack/initiate`
+- Copy the `authorization_url` and open in browser
+- Use Paystack test card: `4084084084084081`
+- Check transaction status
+
+### Paystack Test Cards
+- **Success:** `4084084084084081`
+  - CVV: `408`
+  - PIN: `0000`
+  - OTP: `123456`
+- **Decline:** `4084080000000408`
+
+### Example cURL Commands
+
+**Initiate Payment:**
+```bash
+curl -X POST http://localhost:4000/payments/paystack/initiate \
+  -H "Content-Type: application/json" \
+  -d '{"amount": 5000, "email": "test@example.com"}'
+```
+
+**Check Status:**
+```bash
+curl "http://localhost:4000/payments/txn_1234567890_abc/status?refresh=true"
+```
+
+## Error Handling
+
 All endpoints return appropriate HTTP status codes:
 
-200 - Success
-201 - Created
-400 - Bad Request
-401 - Unauthorized
-404 - Not Found
-500 - Internal Server Error
-Environment Variables
-Variable Description
-DATABASE_HOST PostgreSQL host
-DATABASE_PORT PostgreSQL port
-DATABASE_USER Database username
-DATABASE_PASSWORD Database password
-DATABASE_NAME Database name
-GOOGLE_CLIENT_ID Google OAuth Client ID
-GOOGLE_CLIENT_SECRET Google OAuth Client Secret
-GOOGLE_CALLBACK_URL OAuth redirect URI
-PAYSTACK_SECRET_KEY Paystack secret key
-PAYSTACK_WEBHOOK_SECRET Webhook signature secret
-PORT Application port
-NODE_ENV Environment (development/production)
+- `200` - Success
+- `201` - Created
+- `400` - Bad Request
+- `401` - Unauthorized
+- `404` - Not Found
+- `500` - Internal Server Error
+
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `DATABASE_HOST` | PostgreSQL host |
+| `DATABASE_PORT` | PostgreSQL port |
+| `DATABASE_USER` | Database username |
+| `DATABASE_PASSWORD` | Database password |
+| `DATABASE_NAME` | Database name |
+| `GOOGLE_CLIENT_ID` | Google OAuth Client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth Client Secret |
+| `GOOGLE_CALLBACK_URL` | OAuth redirect URI |
+| `PAYSTACK_SECRET_KEY` | Paystack secret key |
+| `PAYSTACK_WEBHOOK_SECRET` | Webhook signature secret |
+| `PORT` | Application port |
+| `NODE_ENV` | Environment (development/production) |
 
 ## Project Structure
 
+```
 src/
 ├── auth/
-│ ├── auth.controller.ts
-│ ├── auth.service.ts
-│ ├── auth.module.ts
-│ └── dto/
-│ └── google-user.dto.ts
+│   ├── auth.controller.ts
+│   ├── auth.service.ts
+│   ├── auth.module.ts
+│   └── dto/
+│       └── google-user.dto.ts
 ├── payments/
-│ ├── payments.controller.ts
-│ ├── payments.service.ts
-│ ├── payments.module.ts
-│ └── dto/
-│ └── initiate-payment.dto.ts
+│   ├── payments.controller.ts
+│   ├── payments.service.ts
+│   ├── payments.module.ts
+│   └── dto/
+│       └── initiate-payment.dto.ts
 ├── users/
-│ ├── entities/
-│ │ └── user.entity.ts
-│ ├── users.service.ts
-│ └── users.module.ts
+│   ├── entities/
+│   │   └── user.entity.ts
+│   ├── users.service.ts
+│   └── users.module.ts
 ├── transactions/
-│ ├── entities/
-│ │ └── transaction.entity.ts
-│ ├── transactions.service.ts
-│ └── transactions.module.ts
+│   ├── entities/
+│   │   └── transaction.entity.ts
+│   ├── transactions.service.ts
+│   └── transactions.module.ts
 ├── app.module.ts
 └── main.ts
+```
 
-Author
-Paul Yusuf - HNG Stage 7 Backend Task
+## Author
 
-License
+**Paul Yusuf** - HNG Stage 7 Backend Task
+
+## License
+
 MIT
