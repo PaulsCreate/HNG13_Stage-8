@@ -1,83 +1,60 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../entities/user.entity';
 import { ConfigService } from '@nestjs/config';
-import axios from 'axios';
-import { UsersService } from '../users/users.service';
-import { User } from '../users/entities/user.entity';
-import { GoogleUserDto } from './dto/google-user.dto';
 
 @Injectable()
 export class AuthService {
-  private readonly googleTokenUrl = 'https://oauth2.googleapis.com/token';
-  private readonly googleUserInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
-
   constructor(
-    private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+    private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
-  getGoogleAuthUrl(): string {
-    const clientId = this.configService.get<string>('GOOGLE_CLIENT_ID');
-    const redirectUri = this.configService.get<string>('GOOGLE_CALLBACK_URL');
-    const scope = 'openid email profile';
-
-    const params = new URLSearchParams({
-      client_id: clientId,
-      redirect_uri: redirectUri,
-      response_type: 'code',
-      scope: scope,
-      access_type: 'offline',
-      prompt: 'consent',
-    });
-
-    return `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+  async validateGoogleUser(profile: any): Promise<User> {
+    const { id, emails, displayName, photos } = profile;
+    
+    let user = await this.userRepository.findOne({ where: { googleId: id } });
+    
+    if (!user) {
+      user = await this.userRepository.findOne({ where: { email: emails[0].value } });
+      
+      if (user) {
+        user.googleId = id;
+        await this.userRepository.save(user);
+      } else {
+        user = this.userRepository.create({
+          googleId: id,
+          email: emails[0].value,
+          name: displayName,
+          picture: photos?.[0]?.value,
+          emailVerified: emails[0].verified,
+        });
+        await this.userRepository.save(user);
+      }
+    }
+    
+    return user;
   }
 
-  async handleGoogleCallback(code: string): Promise<User> {
-    try {
-      // Exchange code for access token
-      const tokenResponse = await axios.post(this.googleTokenUrl, {
-        code,
-        client_id: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-        client_secret: this.configService.get<string>('GOOGLE_CLIENT_SECRET'),
-        redirect_uri: this.configService.get<string>('GOOGLE_CALLBACK_URL'),
-        grant_type: 'authorization_code',
-      });
+  async generateJwt(user: User): Promise<string> {
+    const payload = { 
+      sub: user.id, 
+      email: user.email,
+      name: user.name 
+    };
+    
+    return this.jwtService.sign(payload);
+  }
 
-      const { access_token } = tokenResponse.data;
-
-      // Get user info from Google
-      const userInfoResponse = await axios.get(this.googleUserInfoUrl, {
-        headers: {
-          Authorization: `Bearer ${access_token}`,
-        },
-      });
-
-      const { id, email, name, picture } = userInfoResponse.data;
-
-      const googleUser: GoogleUserDto = {
-        googleId: id,
-        email,
-        name,
-        picture,
-      };
-
-      // Check if user exists
-      let user = await this.usersService.findByGoogleId(googleUser.googleId);
-
-      if (user) {
-        // Update existing user
-        user = await this.usersService.updateFromGoogle(user, googleUser);
-      } else {
-        // Create new user
-        user = await this.usersService.createFromGoogle(googleUser);
-      }
-
-      return user;
-    } catch (error) {
-      if (error.response?.status === 400 || error.response?.status === 401) {
-        throw new UnauthorizedException('Invalid authorization code');
-      }
-      throw new InternalServerErrorException('Failed to authenticate with Google');
+  async validateUserById(userId: string): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
     }
+    return user;
   }
 }

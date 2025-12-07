@@ -3,34 +3,32 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { PaymentsModule } from './payments/payments.module';
-import { UsersModule } from './users/users.module';
-import { TransactionsModule } from './transactions/transactions.module';
-import { User } from './users/entities/user.entity';
-import { Transaction } from './transactions/entities/transaction.entity';
+import { User } from './entities/user.entity';
+import { Transaction } from './entities/transaction.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
     TypeOrmModule.forRootAsync({
-      inject: [ConfigService],
+      imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get('DATABASE_HOST'),
-        port: configService.get('DATABASE_PORT'),
-        username: configService.get('DATABASE_USER'),
-        password: configService.get('DATABASE_PASSWORD'),
-        database: configService.get('DATABASE_NAME'),
+        host: configService.get('DB_HOST'),
+        port: configService.get('DB_PORT'),
+        username: configService.get('DB_USERNAME'),
+        password: configService.get('DB_PASSWORD'),
+        database: configService.get('DB_DATABASE'),
         entities: [User, Transaction],
-        synchronize: true, // Set to false in production
+        synchronize: configService.get('NODE_ENV') === 'development',
         logging: configService.get('NODE_ENV') === 'development',
       }),
+      inject: [ConfigService],
     }),
     AuthModule,
     PaymentsModule,
-    UsersModule,
-    TransactionsModule,
   ],
 })
 export class AppModule {}

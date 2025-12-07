@@ -1,11 +1,8 @@
-import { IsNumber, IsPositive, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsPositive, Min } from 'class-validator';
 
 export class InitiatePaymentDto {
   @IsNumber()
   @IsPositive()
-  amount: number; // Amount in kobo (lowest currency unit)
-
-  @IsOptional()
-  @IsString()
-  email?: string; // Optional: email for payment
+  @Min(100, { message: 'Amount must be at least 100 kobo (1 NGN)' })
+  amount: number;
 }
