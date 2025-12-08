@@ -47,7 +47,7 @@ pnpm install
 # Server Configuration
 PORT=3000
 NODE_ENV=development
-FRONTEND_URL=http://localhost:3000
+FRONTEND_URL=http://localhost:4000
 
 # PostgreSQL Database
 DB_HOST=localhost
@@ -91,7 +91,7 @@ pnpm run build
 pnpm run start:prod
 ```
 
-The application will start on `http://localhost:3000`
+The application will start on `http://localhost:4000`
 
 ## API Endpoints
 
@@ -204,7 +204,7 @@ For local testing, the `/payments/:reference/status?refresh=true` endpoint can b
 For production webhook testing with Paystack callbacks, expose the webhook endpoint using a tool like ngrok:
 
 ```bash
-ngrok http 3000
+ngrok http 4000
 ```
 
 Then update your Paystack webhook URL to: `https://your-ngrok-url.ngrok.io/payments/paystack/webhook`
@@ -247,7 +247,7 @@ Then update your Paystack webhook URL to: `https://your-ngrok-url.ngrok.io/payme
 ### Manual Testing
 
 **1. Google OAuth:**
-- Open browser: `http://localhost:3000/auth/google`
+- Open browser: `http://localhost:4000/auth/google`
 - Complete Google login
 - Verify JWT token returned
 
@@ -290,7 +290,7 @@ All endpoints return appropriate HTTP status codes:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `PORT` | Application port | No (default: 3000) |
+| `PORT` | Application port | No (default: 4000) |
 | `NODE_ENV` | Environment mode | No (default: development) |
 | `DB_HOST` | PostgreSQL host | Yes |
 | `DB_PORT` | PostgreSQL port | Yes |

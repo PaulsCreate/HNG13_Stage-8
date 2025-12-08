@@ -22,8 +22,8 @@ export class PaymentsService {
       throw new NotFoundException('User not found');
     }
 
-    if (amount < 10000) {
-      throw new BadRequestException('Amount must be at least 10000 kobo (1 NGN)');
+    if (amount < 100) {
+      throw new BadRequestException('Amount must be at least 10000 kobo (100 NGN)');
     }
 
     const existingTransaction = await this.transactionRepository.findOne({
